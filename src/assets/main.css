@@ -1,0 +1,391 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --color-lf-ink: #12201e;
+  --color-lf-muted: #5c6d69;
+  --color-lf-forest: #10211f;
+  --color-lf-panel: #16302c;
+  --color-lf-accent: #1d9e75;
+  --color-lf-accent-strong: #178a66;
+  --color-lf-canvas: #f3f5f4;
+  --color-lf-surface: #ffffff;
+  --color-lf-line: #dce4e1;
+  --color-lf-soft: #eef3f1;
+  --color-lf-danger: #b42318;
+  --color-lf-warning: #b54708;
+  --color-lf-success: #087443;
+  --radius-lf: 0.625rem;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-lf-canvas);
+  color: var(--color-lf-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-lf-accent);
+  outline-offset: 2px;
+}
+
+.lf-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: lf-enter 180ms ease both;
+}
+
+.lf-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-lf-line);
+  border-radius: var(--radius-lf);
+  background: var(--color-lf-surface);
+}
+
+.lf-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.lf-table th {
+  padding: 0.7rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-lf-muted);
+  background: #f8faf9;
+  border-bottom: 1px solid var(--color-lf-line);
+}
+
+.lf-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #eef2f1;
+  vertical-align: middle;
+}
+
+.lf-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.lf-table tbody tr {
+  transition: background-color 120ms ease;
+}
+
+.lf-table tbody tr:hover {
+  background: #f7fbf9;
+}
+
+.lf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lf-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #2b3b38;
+}
+
+.lf-control {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid #cfd8d5;
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-lf-ink);
+  font: inherit;
+}
+
+.lf-search {
+  position: relative;
+  width: 100%;
+}
+
+.lf-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  transform: translateY(-50%);
+  color: var(--color-lf-muted);
+  pointer-events: none;
+}
+
+.lf-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  display: inline-flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--color-lf-muted);
+}
+
+.lf-search-clear:hover {
+  background: var(--color-lf-soft);
+  color: var(--color-lf-ink);
+}
+
+.lf-search-input {
+  padding-left: 2.5rem;
+  padding-right: 2.25rem;
+  appearance: none;
+}
+
+.lf-search-input::-webkit-search-decoration,
+.lf-search-input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.lf-filter {
+  display: flex;
+  min-width: 10rem;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lf-filter-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-lf-muted);
+}
+
+.lf-control:focus {
+  outline: none;
+  border-color: var(--color-lf-accent);
+  box-shadow: 0 0 0 3px rgb(29 158 117 / 0.16);
+}
+
+.lf-control:disabled {
+  background: var(--color-lf-soft);
+  color: var(--color-lf-muted);
+}
+
+.skeleton {
+  border-radius: 0.4rem;
+  background: linear-gradient(90deg, #e6eeeb 0%, #f4f8f6 50%, #e6eeeb 100%);
+  background-size: 200% 100%;
+  animation: lf-shimmer 1.4s ease-in-out infinite;
+}
+
+.lf-spinner {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: lf-spin 640ms linear infinite;
+}
+
+.lf-highlight {
+  animation: lf-highlight 700ms ease;
+}
+
+.lf-success-pop {
+  animation: lf-pop 280ms ease;
+}
+
+@keyframes lf-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lf-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes lf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lf-highlight {
+  0% {
+    background-color: #e8f6f0;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes lf-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lf-modal-enter-active,
+.lf-modal-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.lf-modal-enter-active .lf-modal-panel,
+.lf-modal-leave-active .lf-modal-panel {
+  transition: transform 180ms ease;
+}
+
+.lf-modal-enter-from,
+.lf-modal-leave-to {
+  opacity: 0;
+}
+
+.lf-modal-enter-from .lf-modal-panel {
+  transform: scale(0.96);
+}
+
+.lf-modal-leave-to .lf-modal-panel {
+  transform: scale(0.98);
+}
+
+.lf-drawer-enter-active,
+.lf-drawer-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.lf-drawer-enter-active .lf-drawer-panel,
+.lf-drawer-leave-active .lf-drawer-panel {
+  transition: transform 180ms ease;
+}
+
+.lf-drawer-enter-from,
+.lf-drawer-leave-to {
+  opacity: 0;
+}
+
+.lf-drawer-enter-from .lf-drawer-panel,
+.lf-drawer-leave-to .lf-drawer-panel {
+  transform: translateX(100%);
+}
+
+.lf-toast-enter-active,
+.lf-toast-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.lf-toast-enter-from,
+.lf-toast-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.lf-toast-move {
+  transition: transform 180ms ease;
+}
+
+.lf-card-enter-active,
+.lf-card-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.lf-card-enter-from,
+.lf-card-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.lf-card-move {
+  transition: transform 180ms ease;
+}
+
+.lf-stagger > * {
+  animation: lf-enter 180ms ease both;
+}
+
+.lf-stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.lf-stagger > *:nth-child(2) {
+  animation-delay: 30ms;
+}
+.lf-stagger > *:nth-child(3) {
+  animation-delay: 60ms;
+}
+.lf-stagger > *:nth-child(4) {
+  animation-delay: 90ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-page,
+  .skeleton,
+  .lf-spinner,
+  .lf-highlight,
+  .lf-success-pop,
+  .lf-stagger > * {
+    animation: none !important;
+  }
+
+  .lf-modal-enter-active,
+  .lf-modal-leave-active,
+  .lf-modal-enter-active .lf-modal-panel,
+  .lf-modal-leave-active .lf-modal-panel,
+  .lf-drawer-enter-active,
+  .lf-drawer-leave-active,
+  .lf-drawer-enter-active .lf-drawer-panel,
+  .lf-drawer-leave-active .lf-drawer-panel,
+  .lf-toast-enter-active,
+  .lf-toast-leave-active,
+  .lf-toast-move,
+  .lf-card-enter-active,
+  .lf-card-leave-active,
+  .lf-card-move {
+    transition: opacity 80ms linear !important;
+  }
+
+  .lf-modal-enter-from .lf-modal-panel,
+  .lf-modal-leave-to .lf-modal-panel,
+  .lf-drawer-enter-from .lf-drawer-panel,
+  .lf-drawer-leave-to .lf-drawer-panel,
+  .lf-toast-enter-from,
+  .lf-toast-leave-to,
+  .lf-card-enter-from,
+  .lf-card-leave-to {
+    transform: none !important;
+  }
+}
