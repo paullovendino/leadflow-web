@@ -170,7 +170,7 @@ onMounted(() => {
                     v-if="appointment.customer"
                     type="button"
                     class="font-medium text-lf-ink hover:text-lf-accent"
-                    @click="router.push(`/customers/${appointment.customer.id}`)"
+                    @click="router.push(`/admin/customers/${appointment.customer.id}`)"
                   >
                     {{ appointment.customer.name }}
                   </button>

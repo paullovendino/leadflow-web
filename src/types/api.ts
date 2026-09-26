@@ -236,6 +236,23 @@ export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
   no_show: 'No show',
 }
 
+export interface PublicService {
+  id: number
+  name: string
+  description: string | null
+  duration_minutes: number
+}
+
+export interface PublicLead {
+  id: number
+  name: string
+  email: string | null
+  phone: string | null
+  source: LeadSource
+  service: Pick<Service, 'id' | 'name' | 'duration_minutes'> | null
+  created_at: string
+}
+
 export const leadSources: LeadSource[] = [
   'website',
   'facebook',

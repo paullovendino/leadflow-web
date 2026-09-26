@@ -270,7 +270,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
-          <AppButton v-if="lead.customer" variant="secondary" @click="router.push(`/customers/${lead.customer.id}`)">
+          <AppButton v-if="lead.customer" variant="secondary" @click="router.push(`/admin/customers/${lead.customer.id}`)">
             View customer
           </AppButton>
           <AppButton v-else @click="confirmConvert = true">Convert to customer</AppButton>
@@ -393,7 +393,7 @@ onMounted(() => {
       <template #actions>
         <template v-if="convertSuccess">
           <AppButton variant="secondary" @click="closeConvert">Close</AppButton>
-          <AppButton v-if="lead?.customer" @click="router.push(`/customers/${lead.customer.id}`)">
+          <AppButton v-if="lead?.customer" @click="router.push(`/admin/customers/${lead.customer.id}`)">
             View customer
           </AppButton>
         </template>

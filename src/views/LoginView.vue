@@ -21,7 +21,7 @@ async function submit(): Promise<void> {
 
   try {
     await auth.login(form.email, form.password)
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/admin/dashboard'
     await router.replace(redirect)
   } catch (error) {
     if (axios.isAxiosError(error)) {

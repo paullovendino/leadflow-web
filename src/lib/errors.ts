@@ -17,6 +17,10 @@ export function friendlyApiError(error: unknown, fallback: string): string {
     return 'This record could not be found.'
   }
 
+  if (status === 429) {
+    return "You've submitted a little too quickly. Please wait a moment and try again."
+  }
+
   if (status && status >= 500) {
     return 'Something went wrong while loading this page.'
   }
@@ -26,4 +30,25 @@ export function friendlyApiError(error: unknown, fallback: string): string {
   }
 
   return fallback
+}
+
+export function fieldErrors(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError(error)) {
+    return {}
+  }
+
+  const raw = error.response?.data?.errors
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+
+  const mapped: Record<string, string> = {}
+
+  for (const [field, messages] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(messages) && typeof messages[0] === 'string') {
+      mapped[field] = messages[0]
+    }
+  }
+
+  return mapped
 }

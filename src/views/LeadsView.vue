@@ -303,7 +303,7 @@ onUnmounted(() => {
             :key="lead.id"
             class="cursor-pointer"
             :class="{ 'lf-highlight': highlight.has(lead.id) }"
-            @click="router.push(`/leads/${lead.id}`)"
+            @click="router.push(`/admin/leads/${lead.id}`)"
           >
             <td>
               <div class="flex items-center gap-3">

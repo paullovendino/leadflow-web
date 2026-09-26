@@ -179,7 +179,7 @@ onMounted(() => {
               class="rounded-lg border border-lf-line bg-white p-3 transition hover:border-lf-accent/40"
               :class="{ 'lf-highlight': highlight.has(lead.id) }"
             >
-              <button type="button" class="w-full text-left" @click="router.push(`/leads/${lead.id}`)">
+              <button type="button" class="w-full text-left" @click="router.push(`/admin/leads/${lead.id}`)">
                 <p class="font-medium text-lf-ink">{{ lead.name }}</p>
                 <p class="mt-1 text-xs text-lf-muted">{{ lead.service?.name ?? 'No service' }}</p>
                 <p class="mt-1 text-xs text-lf-muted">{{ contactLine(lead.email, lead.phone) }}</p>

@@ -148,7 +148,7 @@ onMounted(() => {
         <section class="xl:col-span-2 rounded-[var(--radius-lf)] border border-lf-line bg-white">
           <div class="flex items-center justify-between border-b border-lf-line px-5 py-4">
             <h2 class="text-sm font-semibold text-lf-ink">Recent leads</h2>
-            <RouterLink to="/leads" class="text-sm text-lf-accent hover:underline">View all</RouterLink>
+            <RouterLink to="/admin/leads" class="text-sm text-lf-accent hover:underline">View all</RouterLink>
           </div>
           <div v-if="recentLeads.length === 0" class="px-5 py-8 text-sm text-lf-muted">No leads yet.</div>
           <div v-else class="overflow-x-auto">
@@ -164,7 +164,7 @@ onMounted(() => {
               <tbody>
                 <tr v-for="lead in recentLeads" :key="lead.id">
                   <td>
-                    <RouterLink :to="`/leads/${lead.id}`" class="font-medium text-lf-ink hover:text-lf-accent">
+                    <RouterLink :to="`/admin/leads/${lead.id}`" class="font-medium text-lf-ink hover:text-lf-accent">
                       {{ lead.name }}
                     </RouterLink>
                     <p class="text-xs text-lf-muted">{{ contactLine(lead.email, lead.phone) }}</p>

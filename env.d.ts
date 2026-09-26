@@ -12,6 +12,8 @@ export {}
 
 declare module 'vue-router' {
   interface RouteMeta {
+    title?: string
+    public?: boolean
     guest?: boolean
     requiresAuth?: boolean
     roles?: Array<'administrator' | 'manager' | 'staff'>

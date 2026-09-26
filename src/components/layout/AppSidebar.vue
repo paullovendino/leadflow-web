@@ -31,21 +31,21 @@ const canManageStaff = computed(
 )
 
 const workspace = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: ['home', 'dashboard'] },
-  { to: '/leads', label: 'Leads', icon: Sparkles, match: ['leads', 'lead-detail'] },
-  { to: '/pipeline', label: 'Pipeline', icon: Kanban, match: ['pipeline'] },
-  { to: '/customers', label: 'Customers', icon: UserRound, match: ['customers', 'customer-detail'] },
-  { to: '/appointments', label: 'Appointments', icon: CalendarDays, match: ['appointments', 'appointment-detail'] },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: ['home', 'dashboard'] },
+  { to: '/admin/leads', label: 'Leads', icon: Sparkles, match: ['leads', 'lead-detail'] },
+  { to: '/admin/pipeline', label: 'Pipeline', icon: Kanban, match: ['pipeline'] },
+  { to: '/admin/customers', label: 'Customers', icon: UserRound, match: ['customers', 'customer-detail'] },
+  { to: '/admin/appointments', label: 'Appointments', icon: CalendarDays, match: ['appointments', 'appointment-detail'] },
 ]
 
 const operations = computed(() => {
   const items = [
-    { to: '/services', label: 'Services', icon: BriefcaseBusiness, match: ['services'] },
-    { to: '/availability', label: 'Availability', icon: CalendarClock, match: ['availability'] },
+    { to: '/admin/services', label: 'Services', icon: BriefcaseBusiness, match: ['services'] },
+    { to: '/admin/availability', label: 'Availability', icon: CalendarClock, match: ['availability'] },
   ]
 
   if (canManageStaff.value) {
-    items.push({ to: '/users', label: 'Staff', icon: Users, match: ['users'] })
+    items.push({ to: '/admin/staff', label: 'Staff', icon: Users, match: ['users'] })
   }
 
   return items

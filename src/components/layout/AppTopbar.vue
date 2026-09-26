@@ -20,12 +20,12 @@ const menuRoot = ref<HTMLElement | null>(null)
 const searchRef = ref<{ focus: () => void } | null>(null)
 
 const placeholder = computed(() =>
-  route.path.startsWith('/customers') ? 'Search customers...' : 'Search leads, customers...',
+  route.path.startsWith('/admin/customers') ? 'Search customers...' : 'Search leads, customers...',
 )
 
 function submitSearch(): void {
   const value = query.value.trim()
-  const target = route.path.startsWith('/customers') ? '/customers' : '/leads'
+  const target = route.path.startsWith('/admin/customers') ? '/admin/customers' : '/admin/leads'
 
   void router.push({
     path: target,

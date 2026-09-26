@@ -210,7 +210,7 @@ onMounted(() => {
             <ul class="mt-4 divide-y divide-lf-line">
               <li v-for="related in customer.leads ?? []" :key="related.id" class="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <button type="button" class="font-medium text-lf-ink hover:text-lf-accent" @click="router.push(`/leads/${related.id}`)">
+                  <button type="button" class="font-medium text-lf-ink hover:text-lf-accent" @click="router.push(`/admin/leads/${related.id}`)">
                     {{ related.name }}
                   </button>
                   <p class="text-xs text-lf-muted">{{ related.assigned_user?.name ?? 'Unassigned' }}</p>
@@ -259,7 +259,7 @@ onMounted(() => {
                   v-for="item in upcomingAppointments"
                   :key="item.id"
                   class="cursor-pointer py-3"
-                  @click="router.push(`/appointments/${item.id}`)"
+                  @click="router.push(`/admin/appointments/${item.id}`)"
                 >
                   <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
                   <p class="mt-0.5 text-xs text-lf-muted">
@@ -284,7 +284,7 @@ onMounted(() => {
                   v-for="item in pastAppointments"
                   :key="item.id"
                   class="cursor-pointer py-3"
-                  @click="router.push(`/appointments/${item.id}`)"
+                  @click="router.push(`/admin/appointments/${item.id}`)"
                 >
                   <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
                   <p class="mt-0.5 text-xs text-lf-muted">
