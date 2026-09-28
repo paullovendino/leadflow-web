@@ -10,8 +10,10 @@ import {
   getPipeline,
   moveLead,
   updateLead,
+  type QualifyLeadResult,
 } from '@/api/crm'
 import { friendlyApiError } from '@/lib/errors'
+import QualifyLeadModal from '@/components/leads/QualifyLeadModal.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -44,12 +46,18 @@ const moving = ref(false)
 const noting = ref(false)
 const converting = ref(false)
 const confirmConvert = ref(false)
+const confirmQualify = ref(false)
 const convertSuccess = ref(false)
 const savedFlash = ref(false)
 
 const canAssign = computed(
   () => auth.user?.role === 'administrator' || auth.user?.role === 'manager',
 )
+
+const isContacted = computed(() => lead.value?.pipeline_stage?.slug === 'contacted')
+const isQualified = computed(() => lead.value?.pipeline_stage?.slug === 'qualified')
+const canQualify = computed(() => isContacted.value && !lead.value?.customer)
+const qualifiedStage = computed(() => stages.value.find((stage) => stage.slug === 'qualified'))
 
 const stageOptions = computed(() =>
   stages.value.filter((item) => item.is_active || item.id === lead.value?.pipeline_stage?.id),
@@ -173,6 +181,16 @@ async function saveStage(): Promise<void> {
     return
   }
 
+  if (qualifiedStage.value && Number(stageId.value) === qualifiedStage.value.id && !isQualified.value) {
+    stageId.value = lead.value.pipeline_stage?.id ?? ''
+    if (!isContacted.value) {
+      actionError.value = 'Only contacted leads can be qualified.'
+      return
+    }
+    confirmQualify.value = true
+    return
+  }
+
   actionError.value = ''
   moving.value = true
 
@@ -237,6 +255,23 @@ function closeConvert(): void {
   convertSuccess.value = false
 }
 
+function onQualified(result: QualifyLeadResult): void {
+  applyLead(result.lead)
+  confirmQualify.value = false
+  toast.push(result.message)
+}
+
+function bookAppointment(): void {
+  if (!lead.value?.customer) {
+    return
+  }
+
+  void router.push({
+    name: 'appointments',
+    query: { customer_id: String(lead.value.customer.id), create: '1' },
+  })
+}
+
 onMounted(() => {
   if (Number.isNaN(leadId.value)) {
     void router.replace({ name: 'leads' })
@@ -270,9 +305,13 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
-          <AppButton v-if="lead.customer" variant="secondary" @click="router.push(`/admin/customers/${lead.customer.id}`)">
-            View customer
-          </AppButton>
+          <AppButton v-if="canQualify" @click="confirmQualify = true">Move to Qualified</AppButton>
+          <template v-else-if="lead.customer">
+            <AppButton variant="secondary" @click="router.push(`/admin/customers/${lead.customer.id}`)">
+              View customer
+            </AppButton>
+            <AppButton @click="bookAppointment">Book appointment</AppButton>
+          </template>
           <AppButton v-else @click="confirmConvert = true">Convert to customer</AppButton>
         </div>
       </header>
@@ -339,6 +378,19 @@ onMounted(() => {
         </div>
 
         <div class="space-y-5">
+          <section v-if="lead.customer" class="rounded-[var(--radius-lf)] border border-lf-line bg-white p-5">
+            <h2 class="text-sm font-semibold text-lf-ink">Customer</h2>
+            <p class="mt-3 font-medium text-lf-ink">{{ lead.customer.name }}</p>
+            <p v-if="lead.customer.email" class="mt-1 text-sm text-lf-muted">{{ lead.customer.email }}</p>
+            <p v-if="lead.customer.phone" class="mt-1 text-sm text-lf-muted">{{ lead.customer.phone }}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <AppButton variant="secondary" @click="router.push(`/admin/customers/${lead.customer.id}`)">
+                View customer
+              </AppButton>
+              <AppButton @click="bookAppointment">Book appointment</AppButton>
+            </div>
+          </section>
+
           <section class="rounded-[var(--radius-lf)] border border-lf-line bg-white p-5">
             <h2 class="text-sm font-semibold text-lf-ink">Assignment</h2>
             <p class="mt-2 text-sm text-lf-muted">{{ lead.assigned_user?.name ?? 'Unassigned' }}</p>
@@ -378,6 +430,13 @@ onMounted(() => {
         </div>
       </div>
     </template>
+
+    <QualifyLeadModal
+      :open="confirmQualify"
+      :lead-id="lead?.id ?? null"
+      @close="confirmQualify = false"
+      @qualified="onQualified"
+    />
 
     <AppModal
       :open="confirmConvert"

@@ -162,6 +162,24 @@ export async function convertLead(id: number): Promise<Lead> {
   return data.data
 }
 
+export interface QualifyLeadResult {
+  lead: Lead
+  message: string
+  customerCreated: boolean
+}
+
+export async function qualifyLead(id: number): Promise<QualifyLeadResult> {
+  const { data } = await http.post<ApiResource<Lead> & { message?: string; customer_created?: boolean }>(
+    `/api/v1/leads/${id}/qualify`,
+  )
+
+  return {
+    lead: data.data,
+    message: data.message ?? 'Lead qualified successfully.',
+    customerCreated: Boolean(data.customer_created),
+  }
+}
+
 export async function listCustomerNotes(customerId: number): Promise<Note[]> {
   const { data } = await http.get<ApiResource<Note[]>>(`/api/v1/customers/${customerId}/notes`)
   return data.data

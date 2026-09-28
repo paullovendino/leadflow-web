@@ -74,6 +74,7 @@ export type ActivityType =
   | 'note_added'
   | 'lead_updated'
   | 'lead_converted'
+  | 'lead_qualified'
   | 'customer_created'
   | 'appointment_created'
   | 'appointment_updated'

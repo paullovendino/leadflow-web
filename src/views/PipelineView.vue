@@ -8,9 +8,11 @@ import {
   listLeads,
   moveLead,
   updatePipelineStage,
+  type QualifyLeadResult,
 } from '@/api/crm'
 import { friendlyApiError } from '@/lib/errors'
 import { useHighlight } from '@/lib/highlight'
+import QualifyLeadModal from '@/components/leads/QualifyLeadModal.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
@@ -35,6 +37,8 @@ const stageNameEdits = ref<Record<number, string>>({})
 const stagePositionEdits = ref<Record<number, number>>({})
 const busyLeadId = ref<number | null>(null)
 const busyStageId = ref<number | null>(null)
+const confirmQualify = ref(false)
+const qualifyLeadId = ref<number | null>(null)
 
 const canManageStages = computed(
   () => auth.user?.role === 'administrator' || auth.user?.role === 'manager',
@@ -78,11 +82,31 @@ async function load(): Promise<void> {
   }
 }
 
+function applyUpdatedLead(updated: Lead): void {
+  leads.value = leads.value.map((item) =>
+    item.id === updated.id
+      ? { ...item, ...updated, pipeline_stage: updated.pipeline_stage ?? item.pipeline_stage }
+      : item,
+  )
+}
+
 async function changeStage(lead: Lead, event: Event): Promise<void> {
   const select = event.target as HTMLSelectElement
   const nextStageId = Number(select.value)
+  const nextStage = columns.value.find((item) => item.id === nextStageId)
 
   if (!nextStageId || nextStageId === lead.pipeline_stage?.id) {
+    return
+  }
+
+  if (nextStage?.slug === 'qualified' && lead.pipeline_stage?.slug !== 'qualified') {
+    select.value = String(lead.pipeline_stage?.id ?? '')
+    if (lead.pipeline_stage?.slug !== 'contacted') {
+      actionError.value = 'Only contacted leads can be qualified.'
+      return
+    }
+    qualifyLeadId.value = lead.id
+    confirmQualify.value = true
     return
   }
 
@@ -90,13 +114,7 @@ async function changeStage(lead: Lead, event: Event): Promise<void> {
   busyLeadId.value = lead.id
 
   try {
-    const updated = await moveLead(lead.id, nextStageId)
-    const stage = columns.value.find((item) => item.id === nextStageId)
-    leads.value = leads.value.map((item) =>
-      item.id === lead.id
-        ? { ...item, ...updated, pipeline_stage: updated.pipeline_stage ?? stage ?? item.pipeline_stage }
-        : item,
-    )
+    applyUpdatedLead(await moveLead(lead.id, nextStageId))
     highlight.flash(lead.id)
     toast.push('Lead stage updated')
   } catch (error) {
@@ -105,6 +123,18 @@ async function changeStage(lead: Lead, event: Event): Promise<void> {
   } finally {
     busyLeadId.value = null
   }
+}
+
+function closeQualify(): void {
+  confirmQualify.value = false
+  qualifyLeadId.value = null
+}
+
+function onQualified(result: QualifyLeadResult): void {
+  applyUpdatedLead(result.lead)
+  highlight.flash(result.lead.id)
+  closeQualify()
+  toast.push(result.message)
 }
 
 async function saveStage(stage: PipelineStage): Promise<void> {
@@ -216,6 +246,13 @@ onMounted(() => {
         </article>
       </div>
     </div>
+
+    <QualifyLeadModal
+      :open="confirmQualify"
+      :lead-id="qualifyLeadId"
+      @close="closeQualify"
+      @qualified="onQualified"
+    />
 
     <section v-if="canManageStages && pipeline && !loading" class="rounded-[var(--radius-lf)] border border-lf-line bg-white p-5">
       <h2 class="text-sm font-semibold text-lf-ink">Stage management</h2>

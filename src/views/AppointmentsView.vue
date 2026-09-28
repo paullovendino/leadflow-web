@@ -135,7 +135,7 @@ function resetFilters(): void {
 }
 
 function onCreated(created: Appointment): void {
-  toast.push('Appointment created')
+  toast.push('Appointment booked successfully.')
   showForm.value = false
 
   if (filters.page === 1 && !hasFilters.value) {
@@ -178,7 +178,7 @@ watch(
   },
 )
 
-onMounted(() => {
+function applyBookingQuery(): void {
   const customerId = Number(route.query.customer_id)
   if (Number.isFinite(customerId) && customerId > 0) {
     filters.customer_id = customerId
@@ -187,12 +187,22 @@ onMounted(() => {
   if (route.query.create === '1') {
     showForm.value = true
   }
+}
 
+onMounted(() => {
+  applyBookingQuery()
   void loadLookups()
   if (appointments.value.length === 0) {
     void loadAppointments()
   }
 })
+
+watch(
+  () => [route.query.customer_id, route.query.create],
+  () => {
+    applyBookingQuery()
+  },
+)
 
 onUnmounted(() => {
   if (searchTimer) {

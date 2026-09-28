@@ -73,6 +73,19 @@ const pastAppointments = computed(() =>
   (customer.value?.appointments ?? []).filter((appointment) => !isUpcoming(appointment)),
 )
 
+const hasAppointments = computed(() => (customer.value?.appointments ?? []).length > 0)
+
+function bookAppointment(): void {
+  if (!customer.value) {
+    return
+  }
+
+  void router.push({
+    name: 'appointments',
+    query: { customer_id: String(customer.value.id), create: '1' },
+  })
+}
+
 function flashSaved(): void {
   savedFlash.value = true
   window.setTimeout(() => {
@@ -244,63 +257,66 @@ onMounted(() => {
           <section class="rounded-[var(--radius-lf)] border border-lf-line bg-white p-5">
             <div class="flex items-center justify-between gap-3">
               <h2 class="text-sm font-semibold text-lf-ink">Appointments</h2>
-              <AppButton
-                variant="secondary"
-                @click="router.push({ name: 'appointments', query: { customer_id: String(customer.id), create: '1' } })"
-              >
-                Schedule
+              <AppButton variant="secondary" @click="bookAppointment">
+                Book appointment
               </AppButton>
             </div>
 
-            <div class="mt-4">
-              <p class="text-xs font-medium uppercase tracking-wide text-lf-muted">Upcoming</p>
-              <ul class="mt-2 divide-y divide-lf-line">
-                <li
-                  v-for="item in upcomingAppointments"
-                  :key="item.id"
-                  class="cursor-pointer py-3"
-                  @click="router.push(`/admin/appointments/${item.id}`)"
-                >
-                  <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
-                  <p class="mt-0.5 text-xs text-lf-muted">
-                    {{ formatDateOnly(item.scheduled_date) }}
-                    · {{ formatTime(item.start_time) }} – {{ formatTime(item.end_time) }}
-                    · {{ item.staff_user?.name ?? 'Unassigned' }}
-                  </p>
-                  <div class="mt-1">
-                    <AppBadge :tone="appointmentTone(item.status)">{{ item.status_label }}</AppBadge>
-                  </div>
-                </li>
-                <li v-if="upcomingAppointments.length === 0" class="py-3 text-sm text-lf-muted">
-                  No upcoming appointments.
-                </li>
-              </ul>
+            <div v-if="!hasAppointments" class="mt-4">
+              <p class="text-sm text-lf-muted">No appointments yet.</p>
+              <AppButton class="mt-3" @click="bookAppointment">Book appointment</AppButton>
             </div>
 
-            <div class="mt-4">
-              <p class="text-xs font-medium uppercase tracking-wide text-lf-muted">Recent</p>
-              <ul class="mt-2 divide-y divide-lf-line">
-                <li
-                  v-for="item in pastAppointments"
-                  :key="item.id"
-                  class="cursor-pointer py-3"
-                  @click="router.push(`/admin/appointments/${item.id}`)"
-                >
-                  <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
-                  <p class="mt-0.5 text-xs text-lf-muted">
-                    {{ formatDateOnly(item.scheduled_date) }}
-                    · {{ formatTime(item.start_time) }} – {{ formatTime(item.end_time) }}
-                    · {{ item.staff_user?.name ?? 'Unassigned' }}
-                  </p>
-                  <div class="mt-1">
-                    <AppBadge :tone="appointmentTone(item.status)">{{ item.status_label }}</AppBadge>
-                  </div>
-                </li>
-                <li v-if="pastAppointments.length === 0" class="py-3 text-sm text-lf-muted">
-                  No past appointments.
-                </li>
-              </ul>
-            </div>
+            <template v-else>
+              <div class="mt-4">
+                <p class="text-xs font-medium uppercase tracking-wide text-lf-muted">Upcoming</p>
+                <ul class="mt-2 divide-y divide-lf-line">
+                  <li
+                    v-for="item in upcomingAppointments"
+                    :key="item.id"
+                    class="cursor-pointer py-3"
+                    @click="router.push(`/admin/appointments/${item.id}`)"
+                  >
+                    <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
+                    <p class="mt-0.5 text-xs text-lf-muted">
+                      {{ formatDateOnly(item.scheduled_date) }}
+                      · {{ formatTime(item.start_time) }}
+                      · Staff: {{ item.staff_user?.name ?? 'Unassigned' }}
+                    </p>
+                    <div class="mt-1">
+                      <AppBadge :tone="appointmentTone(item.status)">{{ item.status_label }}</AppBadge>
+                    </div>
+                  </li>
+                  <li v-if="upcomingAppointments.length === 0" class="py-3 text-sm text-lf-muted">
+                    No upcoming appointments.
+                  </li>
+                </ul>
+              </div>
+
+              <div class="mt-4">
+                <p class="text-xs font-medium uppercase tracking-wide text-lf-muted">Past</p>
+                <ul class="mt-2 divide-y divide-lf-line">
+                  <li
+                    v-for="item in pastAppointments"
+                    :key="item.id"
+                    class="cursor-pointer py-3"
+                    @click="router.push(`/admin/appointments/${item.id}`)"
+                  >
+                    <p class="text-sm font-medium text-lf-ink">{{ item.service?.name ?? 'Appointment' }}</p>
+                    <p class="mt-0.5 text-xs text-lf-muted">
+                      {{ formatDateOnly(item.scheduled_date) }}
+                      · {{ formatTime(item.start_time) }}
+                    </p>
+                    <div class="mt-1">
+                      <AppBadge :tone="appointmentTone(item.status)">{{ item.status_label }}</AppBadge>
+                    </div>
+                  </li>
+                  <li v-if="pastAppointments.length === 0" class="py-3 text-sm text-lf-muted">
+                    No past appointments.
+                  </li>
+                </ul>
+              </div>
+            </template>
           </section>
 
           <section class="rounded-[var(--radius-lf)] border border-lf-line bg-white p-5">

@@ -2,13 +2,14 @@
 import { computed, reactive, ref, watch } from 'vue'
 import {
   createAppointment,
+  getCustomer,
   listAppointmentSlots,
   listCustomers,
   updateAppointment,
 } from '@/api/crm'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
-import { friendlyApiError } from '@/lib/errors'
+import { fieldErrors, friendlyApiError } from '@/lib/errors'
 import { todayDateInput } from '@/lib/format'
 import http from '@/lib/http'
 import { useAuthStore } from '@/stores/auth'
@@ -32,12 +33,14 @@ const canListStaff = computed(
 )
 
 const customers = ref<Customer[]>([])
+const lockedCustomer = ref<Customer | null>(null)
 const services = ref<Service[]>([])
 const staffMembers = ref<User[]>([])
 const slots = ref<AppointmentSlot[]>([])
 const loadingSlots = ref(false)
 const saving = ref(false)
 const formError = ref('')
+const customerLocked = computed(() => props.mode === 'create' && Boolean(props.presetCustomerId))
 
 const form = reactive({
   customer_id: '' as number | '',
@@ -60,10 +63,10 @@ const description = computed(() =>
 )
 const submitLabel = computed(() => {
   if (!saving.value) {
-    return props.mode === 'reschedule' ? 'Reschedule' : 'Create appointment'
+    return props.mode === 'reschedule' ? 'Reschedule' : 'Book appointment'
   }
 
-  return props.mode === 'reschedule' ? 'Rescheduling...' : 'Creating...'
+  return props.mode === 'reschedule' ? 'Rescheduling...' : 'Booking...'
 })
 
 function resetForm(): void {
@@ -75,6 +78,12 @@ function resetForm(): void {
   form.notes = ''
   slots.value = []
   formError.value = ''
+}
+
+function rememberCustomer(customer: Customer): void {
+  if (!customers.value.some((item) => item.id === customer.id)) {
+    customers.value = [customer, ...customers.value]
+  }
 }
 
 function hydrateFromAppointment(appointment: Appointment): void {
@@ -95,6 +104,23 @@ async function loadLookups(): Promise<void> {
   services.value = servicePage.data.filter((service) => service.is_active)
   customers.value = customerPage.data
 
+  if (props.presetCustomerId) {
+    const listed = customers.value.find((item) => item.id === props.presetCustomerId)
+    if (listed) {
+      lockedCustomer.value = listed
+    } else {
+      try {
+        lockedCustomer.value = await getCustomer(props.presetCustomerId)
+        rememberCustomer(lockedCustomer.value)
+      } catch {
+        lockedCustomer.value = null
+      }
+    }
+    form.customer_id = props.presetCustomerId
+  } else {
+    lockedCustomer.value = null
+  }
+
   if (canListStaff.value) {
     const { data } = await http.get<ApiPaginated<User>>('/api/v1/users?is_active=1')
     staffMembers.value = data.data.filter((user) => user.role === 'staff' || user.role === 'manager')
@@ -110,6 +136,7 @@ async function loadSlots(): Promise<void> {
     return
   }
 
+  slots.value = []
   loadingSlots.value = true
 
   try {
@@ -159,7 +186,13 @@ async function submit(): Promise<void> {
     emit('saved', saved)
     emit('close')
   } catch (error) {
-    formError.value = friendlyApiError(error, 'Unable to save this appointment.')
+    const fields = fieldErrors(error)
+    formError.value = fields.start_time
+      || fields.customer_id
+      || fields.service_id
+      || fields.staff_user_id
+      || fields.scheduled_date
+      || friendlyApiError(error, 'Unable to save this appointment.')
   } finally {
     saving.value = false
   }
@@ -201,9 +234,14 @@ watch(
   <AppDrawer :open="open" :title="title" :description="description" @close="emit('close')">
     <form class="space-y-4" @submit.prevent="submit">
       <div class="lf-field">
-        <label class="lf-label" for="appointment-customer">Customer</label>
+        <label class="lf-label" for="appointment-form-customer">Customer</label>
+        <p v-if="customerLocked && lockedCustomer" class="lf-control bg-lf-soft">
+          {{ lockedCustomer.name }}
+        </p>
+        <p v-else-if="customerLocked" class="lf-control bg-lf-soft text-lf-muted">Loading customer...</p>
         <select
-          id="appointment-customer"
+          v-else
+          id="appointment-form-customer"
           v-model="form.customer_id"
           required
           class="lf-control"
@@ -214,11 +252,12 @@ watch(
             {{ customer.name }}
           </option>
         </select>
+        <p v-if="customerLocked" class="mt-1 text-xs text-lf-muted">This customer is already selected.</p>
       </div>
 
       <div class="lf-field">
-        <label class="lf-label" for="appointment-service">Service</label>
-        <select id="appointment-service" v-model="form.service_id" required class="lf-control">
+        <label class="lf-label" for="appointment-form-service">Service</label>
+        <select id="appointment-form-service" v-model="form.service_id" required class="lf-control">
           <option value="">Select service</option>
           <option v-for="service in services" :key="service.id" :value="service.id">
             {{ service.name }} ({{ service.duration_minutes }} min)
@@ -230,8 +269,8 @@ watch(
       </div>
 
       <div class="lf-field">
-        <label class="lf-label" for="appointment-staff">Staff</label>
-        <select id="appointment-staff" v-model="form.staff_user_id" required class="lf-control">
+        <label class="lf-label" for="appointment-form-staff">Staff</label>
+        <select id="appointment-form-staff" v-model="form.staff_user_id" required class="lf-control">
           <option value="">Select staff</option>
           <option v-for="member in staffMembers" :key="member.id" :value="member.id">
             {{ member.name }}
@@ -240,9 +279,9 @@ watch(
       </div>
 
       <div class="lf-field">
-        <label class="lf-label" for="appointment-date">Date</label>
+        <label class="lf-label" for="appointment-form-date">Date</label>
         <input
-          id="appointment-date"
+          id="appointment-form-date"
           v-model="form.scheduled_date"
           type="date"
           required
@@ -256,7 +295,7 @@ watch(
         <p v-if="!form.staff_user_id || !form.scheduled_date || !form.service_id" class="mt-1 text-sm text-lf-muted">
           Select a service, staff member, and date to see available times.
         </p>
-        <p v-else-if="loadingSlots" class="mt-1 text-sm text-lf-muted">Checking availability...</p>
+        <p v-else-if="loadingSlots" class="mt-1 text-sm text-lf-muted">Loading available times...</p>
         <p v-else-if="slots.length === 0" class="mt-1 text-sm text-lf-muted">
           No available slots for this staff member on the selected date.
         </p>
@@ -277,14 +316,14 @@ watch(
       </div>
 
       <div class="lf-field">
-        <label class="lf-label" for="appointment-notes">Notes</label>
-        <textarea id="appointment-notes" v-model="form.notes" rows="3" class="lf-control" />
+        <label class="lf-label" for="appointment-form-notes">Notes</label>
+        <textarea id="appointment-form-notes" v-model="form.notes" rows="3" class="lf-control" />
       </div>
 
       <p v-if="formError" class="min-h-5 text-sm text-lf-danger">{{ formError }}</p>
       <div class="flex justify-end gap-2">
         <AppButton variant="secondary" type="button" @click="emit('close')">Cancel</AppButton>
-        <AppButton type="submit" :loading="saving">{{ submitLabel }}</AppButton>
+        <AppButton type="submit" :loading="saving" :disabled="loadingSlots">{{ submitLabel }}</AppButton>
       </div>
     </form>
   </AppDrawer>
