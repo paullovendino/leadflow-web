@@ -237,6 +237,87 @@ export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
   no_show: 'No show',
 }
 
+export interface DashboardOverview {
+  total_leads: number
+  qualified_leads: number
+  converted_leads: number
+  total_customers: number
+}
+
+export interface DashboardAppointments {
+  today: number
+  upcoming: number
+  scheduled: number
+  confirmed: number
+  completed: number
+  cancelled: number
+  no_show: number
+}
+
+export interface DashboardPipelineStage {
+  id: number
+  name: string
+  slug: string
+  position: number
+  count: number
+}
+
+export interface DashboardLeadSource {
+  source: LeadSource | null
+  count: number
+}
+
+export interface DashboardAppointmentStatusCount {
+  status: AppointmentStatus
+  count: number
+}
+
+export interface DashboardServiceBreakdown {
+  service_id: number
+  name: string
+  count: number
+}
+
+export interface DashboardStaffBreakdown {
+  staff_user_id: number
+  name: string
+  count: number
+}
+
+export interface DashboardRecentLead {
+  id: number
+  name: string
+  email: string | null
+  phone: string | null
+  service: { id: number; name: string } | null
+  pipeline_stage: { id: number; name: string; slug: string } | null
+  assigned_user: { id: number; name: string } | null
+  created_at: string
+}
+
+export interface DashboardActivity {
+  id: number
+  type: ActivityType
+  description: string
+  created_at: string
+  user: { id: number; name: string } | null
+  subject: { type: 'lead' | 'customer' | 'appointment'; id: number; name: string } | null
+}
+
+export interface Dashboard {
+  overview: DashboardOverview
+  appointments: DashboardAppointments
+  pipeline: DashboardPipelineStage[]
+  lead_sources: DashboardLeadSource[]
+  appointment_breakdown: {
+    by_status: DashboardAppointmentStatusCount[]
+    by_service: DashboardServiceBreakdown[]
+    by_staff: DashboardStaffBreakdown[]
+  }
+  recent_leads: DashboardRecentLead[]
+  recent_activity: DashboardActivity[]
+}
+
 export interface PublicService {
   id: number
   name: string

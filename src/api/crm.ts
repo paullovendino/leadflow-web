@@ -14,6 +14,7 @@ import type {
   Note,
   Pipeline,
   PipelineStage,
+  Dashboard,
 } from '@/types/api'
 
 function leadQuery(filters: LeadFilters = {}): string {
@@ -91,6 +92,11 @@ export async function createNote(leadId: number, body: string): Promise<Note> {
 
 export async function listActivities(leadId: number): Promise<Activity[]> {
   const { data } = await http.get<ApiResource<Activity[]>>(`/api/v1/leads/${leadId}/activities`)
+  return data.data
+}
+
+export async function getDashboard(): Promise<Dashboard> {
+  const { data } = await http.get<ApiResource<Dashboard>>('/api/v1/dashboard')
   return data.data
 }
 
