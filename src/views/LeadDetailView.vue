@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CircleCheck } from 'lucide-vue-next'
 import {
@@ -95,7 +95,7 @@ function applyLead(next: Lead): void {
     ...next,
     notes: next.notes ?? current?.notes,
     activities: next.activities ?? current?.activities,
-    customer: next.customer ?? current?.customer,
+    customer: next.customer !== undefined ? next.customer : current?.customer,
   })
 }
 
@@ -271,6 +271,15 @@ function bookAppointment(): void {
     query: { customer_id: String(lead.value.customer.id), create: '1' },
   })
 }
+
+watch(leadId, (id) => {
+  if (Number.isNaN(id)) {
+    void router.replace({ name: 'leads' })
+    return
+  }
+
+  void load()
+})
 
 onMounted(() => {
   if (Number.isNaN(leadId.value)) {

@@ -208,6 +208,8 @@ export interface AppointmentSlot {
   end_time: string
 }
 
+export type CalendarView = 'list' | 'day' | 'week'
+
 export interface AppointmentFilters {
   search?: string
   status?: AppointmentStatus | ''

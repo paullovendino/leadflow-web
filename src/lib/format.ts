@@ -62,6 +62,117 @@ export function todayDateInput(): string {
   return `${now.getFullYear()}-${month}-${day}`
 }
 
+export const APP_TIMEZONE = 'Asia/Manila'
+
+function pad2(value: number): string {
+  return String(value).padStart(2, '0')
+}
+
+function partValue(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {
+  return parts.find((part) => part.type === type)?.value ?? ''
+}
+
+export function manilaToday(): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+
+  return `${partValue(parts, 'year')}-${partValue(parts, 'month')}-${partValue(parts, 'day')}`
+}
+
+export function manilaMinutesSinceMidnight(): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date())
+
+  return Number(partValue(parts, 'hour')) * 60 + Number(partValue(parts, 'minute'))
+}
+
+export function dateFromIso(value: string): Date {
+  const [year = 1970, month = 1, day = 1] = value.slice(0, 10).split('-').map(Number)
+
+  return new Date(year, month - 1, day)
+}
+
+export function isoFromDate(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+export function addDays(isoDate: string, days: number): string {
+  const date = dateFromIso(isoDate)
+  date.setDate(date.getDate() + days)
+
+  return isoFromDate(date)
+}
+
+export function startOfWeekMonday(isoDate: string): string {
+  const date = dateFromIso(isoDate)
+  const weekday = date.getDay()
+  const offset = weekday === 0 ? -6 : 1 - weekday
+  date.setDate(date.getDate() + offset)
+
+  return isoFromDate(date)
+}
+
+export function weekDates(isoDate: string): string[] {
+  const start = startOfWeekMonday(isoDate)
+
+  return Array.from({ length: 7 }, (_, index) => addDays(start, index))
+}
+
+export function minutesFromMidnight(time: string): number {
+  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
+
+  return (hour || 0) * 60 + (minute || 0)
+}
+
+export function minutesToClock(minutes: number): string {
+  const clamped = Math.max(0, Math.min(24 * 60 - 1, minutes))
+
+  return `${pad2(Math.floor(clamped / 60))}:${pad2(clamped % 60)}`
+}
+
+export function snapToHalfHour(minutes: number): number {
+  return Math.round(minutes / 30) * 30
+}
+
+export function formatDayHeading(isoDate: string): string {
+  return dateFromIso(isoDate).toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+export function formatWeekRange(startIso: string, endIso: string): string {
+  const start = dateFromIso(startIso)
+  const end = dateFromIso(endIso)
+  const startMonth = start.toLocaleDateString(undefined, { month: 'long' })
+  const endMonth = end.toLocaleDateString(undefined, { month: 'long' })
+  const year = end.getFullYear()
+
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${startMonth} ${start.getDate()} – ${end.getDate()}, ${year}`
+  }
+
+  return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${year}`
+}
+
+export function formatWeekdayShort(isoDate: string): string {
+  return dateFromIso(isoDate).toLocaleDateString(undefined, { weekday: 'short' })
+}
+
+export function formatMonthDay(isoDate: string): string {
+  return dateFromIso(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) {
     return '—'

@@ -10,7 +10,7 @@ import {
 import AppButton from '@/components/ui/AppButton.vue'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
 import { fieldErrors, friendlyApiError } from '@/lib/errors'
-import { todayDateInput } from '@/lib/format'
+import { manilaToday } from '@/lib/format'
 import http from '@/lib/http'
 import { useAuthStore } from '@/stores/auth'
 import type { ApiPaginated, Appointment, AppointmentSlot, Customer, Service, User } from '@/types/api'
@@ -20,6 +20,9 @@ const props = defineProps<{
   mode: 'create' | 'reschedule'
   appointment?: Appointment | null
   presetCustomerId?: number | null
+  presetScheduledDate?: string | null
+  presetStartTime?: string | null
+  presetStaffUserId?: number | null
 }>()
 
 const emit = defineEmits<{
@@ -69,15 +72,42 @@ const submitLabel = computed(() => {
   return props.mode === 'reschedule' ? 'Rescheduling...' : 'Booking...'
 })
 
+function clock(value: string | null | undefined): string {
+  return (value ?? '').slice(0, 5)
+}
+
 function resetForm(): void {
   form.customer_id = props.presetCustomerId ?? ''
   form.service_id = ''
-  form.staff_user_id = canListStaff.value ? '' : (auth.user?.id ?? '')
-  form.scheduled_date = ''
+  form.staff_user_id = canListStaff.value
+    ? (props.presetStaffUserId ?? '')
+    : (auth.user?.id ?? '')
+  form.scheduled_date = props.presetScheduledDate ?? ''
   form.start_time = ''
   form.notes = ''
   slots.value = []
   formError.value = ''
+}
+
+function reconcilePresetStart(): void {
+  if (props.mode !== 'create') {
+    return
+  }
+
+  const preset = clock(props.presetStartTime)
+  if (!preset) {
+    return
+  }
+
+  const valid = slots.value.some((slot) => slot.start_time === preset)
+  if (valid && (form.start_time === '' || form.start_time === preset)) {
+    form.start_time = preset
+    return
+  }
+
+  if (!valid && form.start_time === preset) {
+    form.start_time = ''
+  }
 }
 
 function rememberCustomer(customer: Customer): void {
@@ -150,6 +180,8 @@ async function loadSlots(): Promise<void> {
     if (form.start_time && !slots.value.some((slot) => slot.start_time === form.start_time)) {
       form.start_time = ''
     }
+
+    reconcilePresetStart()
   } catch {
     slots.value = []
   } finally {
@@ -286,7 +318,7 @@ watch(
           type="date"
           required
           class="lf-control"
-          :min="todayDateInput()"
+          :min="manilaToday()"
         >
       </div>
 

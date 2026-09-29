@@ -244,6 +244,19 @@ export async function listAppointments(filters: AppointmentFilters = {}): Promis
   return data
 }
 
+export async function listAllAppointments(filters: AppointmentFilters = {}): Promise<Appointment[]> {
+  const first = await listAppointments({ ...filters, page: 1, per_page: 100 })
+  const appointments = [...first.data]
+  const lastPage = first.meta.last_page
+
+  for (let page = 2; page <= lastPage; page += 1) {
+    const next = await listAppointments({ ...filters, page, per_page: 100 })
+    appointments.push(...next.data)
+  }
+
+  return appointments
+}
+
 export async function getAppointment(id: number): Promise<Appointment> {
   const { data } = await http.get<ApiResource<Appointment>>(`/api/v1/appointments/${id}`)
   return data.data
